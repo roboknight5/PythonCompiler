@@ -26,6 +26,16 @@ class Lexer:
             text = self.input[start:start + length]
             return Token(text, TokenKind.NumberToken)
 
+        if self.current_char().isalpha():
+            start = self.position
+            while self.current_char().isalpha() or self.current_char().isdigit():
+                self.next()
+            length = self.position - start
+            text = self.input[start:start + length]
+            if text == "int":
+                return Token(text, TokenKind.IntegerKeywordToken)
+            return Token(text, TokenKind.IdentifierToken)
+
         if self.current_char().isspace():
             start = self.position
             while self.current_char().isspace():
@@ -52,6 +62,12 @@ class Lexer:
         elif self.current_char() == ")":
             self.next()
             return Token(")", TokenKind.RightParenthesisToken)
+        elif self.current_char() == ";":
+            self.next()
+            return Token(";", TokenKind.SemicolonToken)
+        elif self.current_char() == "=":
+            self.next()
+            return Token("=", TokenKind.EqualToken)
 
         return Token("", TokenKind.BadToken)
 
@@ -60,6 +76,7 @@ class Lexer:
         while True:
             token = self.next_token()
             if token.kind == TokenKind.EndOfFileToken:
+                token_list.append(token)
                 break
             if token.kind == TokenKind.BadToken:
                 raise Exception("Error Invalid Token")

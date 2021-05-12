@@ -12,6 +12,12 @@ class TokenKind(Enum):
     WhiteSpaceToken = 7
     LeftParenthesisToken = 8
     RightParenthesisToken = 9
+    SemicolonToken = 10
+    IdentifierToken = 11
+    EqualToken = 12
+
+    # Keywords
+    IntegerKeywordToken = 13
 
 
 class Token:
@@ -20,4 +26,4 @@ class Token:
         self.value = value
 
     def __repr__(self):
-        return "Kind: "+self.kind.name+" Value: "+self.value
+        return "Kind: " + self.kind.name + " Value: " + self.value

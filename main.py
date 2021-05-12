@@ -15,6 +15,9 @@ def print_tree(node, indent=""):
     elif isinstance(node, UnaryOpNode):
         print(node.__class__.__name__, end="")
         print(" Operator: " + node.operator.value, end="")
+    elif isinstance(node, VarNode):
+        print(node.__class__.__name__, end="")
+        print(" VariableName: " + node.variable.value, end="")
     print()
     indent += "│   "
     if isinstance(node, BinaryOpNode):
@@ -24,6 +27,8 @@ def print_tree(node, indent=""):
 
     elif isinstance(node, UnaryOpNode):
         print_tree(node.node,indent)
+    elif isinstance(node, VarNode):
+        print_tree(node.value, indent)
     elif isinstance(node, NumberNode):
         pass
 
@@ -37,4 +42,5 @@ if __name__ == '__main__':
 
     parser = Parser(token_list)
     out = parser.parse()
-    print_tree(out)
+    for i in out:
+        print_tree(i)

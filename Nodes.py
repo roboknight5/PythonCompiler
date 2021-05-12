@@ -1,4 +1,20 @@
 from Token import Token
+from typing import List
+
+
+class StatementsNode:
+    def __init__(self):
+        self.stmt_list = []
+
+
+class VarNode:
+    def __init__(self, variable, value):
+        self.variable: Token = variable
+        self.value = value
+
+
+class SymbolTable:
+    sym_table: List[VarNode] = []
 
 
 class NumberNode:
