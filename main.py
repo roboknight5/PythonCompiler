@@ -26,7 +26,7 @@ def print_tree(node, indent=""):
         print_tree(node.right, indent)
 
     elif isinstance(node, UnaryOpNode):
-        print_tree(node.node,indent)
+        print_tree(node.node, indent)
     elif isinstance(node, VarNode):
         print_tree(node.value, indent)
     elif isinstance(node, NumberNode):

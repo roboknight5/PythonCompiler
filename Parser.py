@@ -19,39 +19,44 @@ class Parser:
     def parse(self):
         return self.statement_list()
 
-    def statement(self):
-
-        if self.current_token.kind == TokenKind.IntegerKeywordToken:
-            self.advance()
-            if self.current_token.kind == TokenKind.IdentifierToken:
-                var_name = self.current_token
-                self.advance()
-                if self.current_token.kind == TokenKind.EqualToken:
-                    self.advance()
-                    value = self.expression()
-                    var_node = VarNode(var_name, value)
-                    for node in SymbolTable.sym_table:
-                        if node.variable.value == var_name.value:
-                            raise Exception(f"Variable {node.variable.value} is already Declared")
-
-                    SymbolTable.sym_table.append(var_node)
-                    return var_node
-            else:
-                raise Exception("Identifier required after keyword \'int\'")
-
+    def declare_statement(self):
         if self.current_token.kind == TokenKind.IdentifierToken:
             var_name = self.current_token
-            if self.peek(1).kind == TokenKind.EqualToken:
-                self.advance(1)
+            self.advance()
+            if self.current_token.kind == TokenKind.EqualToken:
+                self.advance()
                 value = self.expression()
-                var_node = None
-                for var in SymbolTable.sym_table:
-                    if var_name.value == var.variable.value:
-                        var.value = value
-                        var_node = var
-                if var_node is None:
-                    raise Exception("Unknown identifier ")
+                var_node = VarNode(var_name, value)
+                for node in SymbolTable.sym_table:
+                    if node.variable.value == var_name.value:
+                        raise Exception(f"Variable {node.variable.value} is already Declared")
+
+                SymbolTable.sym_table.append(var_node)
                 return var_node
+        else:
+            raise Exception("Identifier required after keyword \'int\'")
+
+    def assign_statement(self):
+        var_name = self.current_token
+        self.advance(1)
+        value = self.expression()
+        var_node = None
+        for idx, var in enumerate(SymbolTable.sym_table):
+            if var.variable.value == var_name.value:
+                SymbolTable.sym_table[idx] = VarNode(var_name, value)
+                var_node = VarNode(var_name, value)
+
+        if var_node is None:
+            raise Exception("Unknown identifier ")
+        return var_node
+
+    def statement(self):
+        if self.current_token.kind == TokenKind.IntegerKeywordToken:
+            self.advance()
+            return self.declare_statement()
+
+        if self.current_token.kind == TokenKind.IdentifierToken and self.peek(1).kind == TokenKind.EqualToken:
+            return self.assign_statement()
 
         result = self.expression()
         return result
