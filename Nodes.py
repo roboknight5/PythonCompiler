@@ -1,9 +1,20 @@
 from Token import Token
+from typing import List
 
 
 class NumberNode:
     def __init__(self, value):
         self.token: Token = value
+
+
+class VariableNode:
+    def __init__(self, variable, value):
+        self.variable: Token = variable
+        self.value = value
+
+
+class SymbolTable:
+    symbol_table: List[VariableNode] = []
 
 
 class BinaryOpNode:
@@ -17,3 +28,7 @@ class UnaryOpNode:
     def __init__(self, operator: Token, node):
         self.operator = operator
         self.node = node
+
+
+class AssignNode:
+    pass
