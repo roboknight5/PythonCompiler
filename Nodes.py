@@ -31,4 +31,11 @@ class UnaryOpNode:
 
 
 class AssignNode:
-    pass
+    def __init__(self, variable):
+        self.variable: VariableNode = variable
+
+
+class IfStatementNode:
+    def __init__(self, condition, body):
+        self.condition = condition
+        self.body = body

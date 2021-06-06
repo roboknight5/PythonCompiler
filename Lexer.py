@@ -11,8 +11,13 @@ class Lexer:
             return '\0'
         return self.input[self.position]
 
-    def next(self):
-        self.position += 1
+    def peek_ahead(self):
+        if self.position + 1 >= len(self.input):
+            return '\0'
+        return self.input[self.position + 1]
+
+    def next(self, offset=0):
+        self.position += 1 + offset
 
     def next_token(self) -> Token:
         if self.position >= len(self.input):
@@ -42,6 +47,12 @@ class Lexer:
             text = self.input[start:length + start]
             if text == "int":
                 return Token(text, TokenKind.IntKeywordToken)
+            if text == "if":
+                return Token(text, TokenKind.IfKeywordToken)
+            if text == "then":
+                return Token(text, TokenKind.ThenKeywordToken)
+            if text == "end":
+                return Token(text, TokenKind.EndKeywordToken)
             return Token(text, TokenKind.IdentifierToken)
 
         if self.current_char() == "+":
@@ -66,9 +77,18 @@ class Lexer:
             self.next()
             return Token(";", TokenKind.SemicolonToken)
         elif self.current_char() == "=":
+            if self.peek_ahead() == "=":
+                self.next(1)
+                return Token("==", TokenKind.EqualEqualToken)
+            else:
+                self.next()
+                return Token("=", TokenKind.EqualToken)
+        elif self.current_char() == ">":
             self.next()
-            return Token("=", TokenKind.EqualToken)
-
+            return Token(">", TokenKind.GreaterThanToken)
+        elif self.current_char() == "<":
+            self.next()
+            return Token("<", TokenKind.SmallerThanToken)
         return Token("", TokenKind.BadToken)
 
     def lex(self):

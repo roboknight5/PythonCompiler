@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import IntEnum
 
 
-class TokenKind(Enum):
+class TokenKind(IntEnum):
     NumberToken = 0
     PlusToken = 1
     MinusToken = 2
@@ -16,7 +16,12 @@ class TokenKind(Enum):
     IdentifierToken = 11
     IntKeywordToken = 12
     EqualToken = 13
-
+    IfKeywordToken = 14
+    ThenKeywordToken = 15
+    EndKeywordToken = 16
+    EqualEqualToken = 17
+    GreaterThanToken = 18
+    SmallerThanToken = 19
 
 
 class Token:
