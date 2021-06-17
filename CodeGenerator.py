@@ -22,7 +22,8 @@ class CodeGenerator:
         self.instruction_prefix = "\t"
 
     def start(self):
-        self.instructions.append('PROGRAM START 0')
+        if len(self.stmt_list)!=0:
+            self.instructions.append('PROGRAM START 0')
         first_instruction = True
         for x in self.stmt_list:
             if first_instruction: self.instruction_prefix = "FIRST "
@@ -57,6 +58,14 @@ class CodeGenerator:
                         self.constants.append("0")
                     zero = "0"
                     self.instructions.append(f"{j_value} LDA {self.symbol_table.get(zero)}")
+
+
+
+
+
+
+
+
 
     def __generate(self, node):
         if isinstance(node, BinaryOpNode):

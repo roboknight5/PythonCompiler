@@ -1,4 +1,3 @@
-from lxml.html.diff import token
 
 from Nodes import *
 from Token import TokenKind
@@ -11,7 +10,6 @@ class Parser:
         self.position = 0
         self.in_if_statement = False
         self.if_sym_table = []
-        self.in_if_operand=False
 
     def advance(self, offset=0):
         self.position += 1 + offset
@@ -41,21 +39,37 @@ class Parser:
                 raise Exception("Error missing semicolon")
 
             expression = self.statement()
-            # print(self.current_token)
-            # tok_list={TokenKind.LeftParenthesisToken,TokenKind.RightParenthesisToken,TokenKind.PlusToken,TokenKind.MinusToken,TokenKind.SlashToken,TokenKind.AsteriskToken,
-            #           TokenKind.SmallerThanToken,TokenKind.GreaterThanToken,TokenKind.EqualEqualToken,TokenKind.EqualToken,TokenKind.NumberToken,TokenKind.IdentifierToken,TokenKind.}
+
             tok_list = [t.value for t in TokenKind]
             tok_list.remove(TokenKind.SemicolonToken)
             if self.current_token.kind in tok_list:
                 raise Exception(f'unexpected token {self.current_token.value}')
 
             if self.current_token.kind != TokenKind.SemicolonToken:
-                print('error ' + str(self.current_token))
+                # print('error ' + str(self.current_token))
                 raise Exception("Error missing semicolon")
 
             self.advance()
             statement_list.append(expression)
         return statement_list
+
+    def statement(self):
+        if self.current_token.kind == TokenKind.IntKeywordToken:
+            return self.declare_statement()
+
+        if self.current_token.kind == TokenKind.IdentifierToken and self.look_ahead().kind == TokenKind.EqualToken:
+            return self.assign_statement()
+
+        if self.current_token.kind == TokenKind.IfKeywordToken:
+            return self.if_statement()
+
+        expression = self.expression()
+        if self.current_token.kind == TokenKind.EqualEqualToken or \
+                self.current_token.kind == TokenKind.GreaterThanToken or \
+                self.current_token.kind == TokenKind.SmallerThanToken:
+            raise Exception("Can not have logical operator as an expression  ")
+
+        return expression
 
     def declare_statement(self):
 
@@ -124,26 +138,7 @@ class Parser:
         self.in_if_statement = False
         return IfStatementNode(expression, statements)
 
-    def statement(self):
-        if self.current_token.kind == TokenKind.IntKeywordToken:
-            return self.declare_statement()
-
-        if self.current_token.kind == TokenKind.IdentifierToken and self.look_ahead().kind == TokenKind.EqualToken:
-            return self.assign_statement()
-
-        if self.current_token.kind == TokenKind.IfKeywordToken:
-            return self.if_statement()
-
-        expression = self.expression()
-        if self.current_token.kind == TokenKind.EqualEqualToken or \
-                self.current_token.kind == TokenKind.GreaterThanToken or \
-                self.current_token.kind == TokenKind.SmallerThanToken:
-            raise Exception("Can not have logical operator as an expression  ")
-
-        return expression
-
     def logical_expression(self):
-        self.in_if_operand=True
         left = self.expression()
 
         while self.current_token.kind == TokenKind.EqualEqualToken \
@@ -178,15 +173,12 @@ class Parser:
     def factor(self):
         token: Token = self.current_token
         if token.kind == TokenKind.NumberToken:
-            # tok_list_after = [TokenKind.LeftParenthesisToken, TokenKind.RightParenthesisToken,TokenKind.PlusToken,TokenKind.AsteriskToken,
-            #                   TokenKind.SlashToken,]
-            # tok_list_after = [t.value for t in TokenKind]
-            # tok_list_after.remove(TokenKind.SemicolonToken)
             tok_list_common = [TokenKind.PlusToken, TokenKind.MinusToken, TokenKind.AsteriskToken, TokenKind.SlashToken,
                                TokenKind.EqualToken, TokenKind.GreaterThanToken,
-                               TokenKind.SmallerThanToken,TokenKind.EqualEqualToken]
+                               TokenKind.SmallerThanToken, TokenKind.EqualEqualToken]
             tok_list_after = [TokenKind.RightParenthesisToken, TokenKind.SemicolonToken, TokenKind.ThenKeywordToken]
-            tok_list_behind = [TokenKind.EqualToken, TokenKind.LeftParenthesisToken, TokenKind.IfKeywordToken,TokenKind.SemicolonToken,TokenKind.EndOfFileToken,TokenKind.ThenKeywordToken]
+            tok_list_behind = [TokenKind.EqualToken, TokenKind.LeftParenthesisToken, TokenKind.IfKeywordToken,
+                               TokenKind.SemicolonToken, TokenKind.EndOfFileToken, TokenKind.ThenKeywordToken]
 
             # Valid After
             if self.look_ahead().kind not in tok_list_after and \
@@ -199,17 +191,12 @@ class Parser:
             self.advance()
             return NumberNode(token)
         if token.kind == TokenKind.IdentifierToken:
-            # tok_list_common = [TokenKind.PlusToken, TokenKind.MinusToken, TokenKind.AsteriskToken, TokenKind.SlashToken,
-            #                    TokenKind.EqualToken, TokenKind.GreaterThanToken,
-            #                    TokenKind.SmallerThanToken]
-            # tok_list_after = [TokenKind.RightParenthesisToken, TokenKind.SemicolonToken]
-            # tok_list_behind = [TokenKind.EqualToken, TokenKind.LeftParenthesisToken]
             tok_list_common = [TokenKind.PlusToken, TokenKind.MinusToken, TokenKind.AsteriskToken, TokenKind.SlashToken,
                                TokenKind.EqualToken, TokenKind.GreaterThanToken,
-                               TokenKind.SmallerThanToken,TokenKind.EqualEqualToken]
+                               TokenKind.SmallerThanToken, TokenKind.EqualEqualToken]
             tok_list_after = [TokenKind.RightParenthesisToken, TokenKind.SemicolonToken, TokenKind.ThenKeywordToken]
             tok_list_behind = [TokenKind.EqualToken, TokenKind.LeftParenthesisToken, TokenKind.IfKeywordToken,
-                               TokenKind.SemicolonToken, TokenKind.EndOfFileToken,TokenKind.ThenKeywordToken]
+                               TokenKind.SemicolonToken, TokenKind.EndOfFileToken, TokenKind.ThenKeywordToken]
 
             # Valid After
             if self.look_ahead().kind not in tok_list_after and \
@@ -253,20 +240,14 @@ class Parser:
 
         if token.kind == TokenKind.RightParenthesisToken:
             raise Exception("unexpected token')'")
-        if token.kind==TokenKind.EqualEqualToken :
+        if token.kind == TokenKind.EqualEqualToken:
             raise Exception("unexpected token '=='")
-        if token.kind==TokenKind.GreaterThanToken :
+        if token.kind == TokenKind.GreaterThanToken:
             raise Exception("unexpected token '>'")
-        if token.kind==TokenKind.SmallerThanToken :
+        if token.kind == TokenKind.SmallerThanToken:
             raise Exception("unexpected token '<'")
 
-
-
         if token.kind == TokenKind.LeftParenthesisToken:
-            # tok_list_common = [TokenKind.LeftParenthesisToken, TokenKind.RightParenthesisToken]
-            # tok_list_before=[TokenKind.IdentifierToken,TokenKind.NumberToken]
-            # if self.look_ahead().kind in tok_list_common:raise Exception(f"unexpected token '{self.look_ahead().value}' ")
-            # if self.look_behind().kind in tok_list_common and self.look_behind().kind in tok_list_before: raise Exception(f"unexpected token '{self.look_behind().value}' ")
 
             self.advance()
 
@@ -275,10 +256,10 @@ class Parser:
                 self.advance()
                 return expr
             else:
-                txt=""
+                txt = ""
                 if self.in_if_statement:
-                    txt="and can't have Parenthesis surrounding logical expression"
+                    txt = "and can't have Parenthesis surrounding logical expression"
 
-                raise Exception("Missing ')' "+txt)
+                raise Exception("Missing ')' " + txt)
         if token.kind == TokenKind.SemicolonToken:
             raise Exception("unexpected token `;`")
